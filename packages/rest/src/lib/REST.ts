@@ -5,7 +5,7 @@ import { filetypeinfo } from 'magic-bytes.js';
 import type { RequestInit, BodyInit, Dispatcher } from 'undici';
 import { CDN } from './CDN.js';
 import { BurstHandler } from './handlers/BurstHandler.js';
-import { SequentialHandler } from './handlers/SequentialHandler.js';
+import { ConcurrentHandler } from './handlers/ConcurrentHandler.js';
 import type { IHandler } from './interfaces/Handler.js';
 import {
 	BurstHandlerMajorIdKey,
@@ -276,7 +276,7 @@ export class REST extends AsyncEventEmitter<RestEventsMap> {
 		const queue =
 			majorParameter === BurstHandlerMajorIdKey
 				? new BurstHandler(this, hash, majorParameter)
-				: new SequentialHandler(this, hash, majorParameter);
+				: new ConcurrentHandler(this, hash, majorParameter);
 		// Save the queue based on its id
 		this.handlers.set(queue.id, queue);
 
@@ -323,9 +323,8 @@ export class REST extends AsyncEventEmitter<RestEventsMap> {
 		}
 
 		// Format the full request URL (api base, optional version, endpoint, optional querystring)
-		const url = `${options.api}${request.versioned === false ? '' : `/v${options.version}`}${
-			request.fullRoute
-		}${query}`;
+		const url = `${options.api}${request.versioned === false ? '' : `/v${options.version}`}${request.fullRoute
+			}${query}`;
 
 		let finalBody: RequestInit['body'];
 		let additionalHeaders: Record<string, string> = {};
